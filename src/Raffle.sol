@@ -35,7 +35,7 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/inter
  */
 contract Raffle is VRFConsumerBaseV2 {
     /** Errors */
-    error Raflle__NotEnoughEthSent();
+    error Raffle__NotEnoughEthSent();
     error Raffle__TransferFailed();
     error Raffle__RaffleNotOpen();
     error Raffe__UpkeepNotNeeded(
@@ -71,7 +71,6 @@ contract Raffle is VRFConsumerBaseV2 {
      */
     event EnteredRaffle(address indexed player);
     event PickedWinner(address indexed winner);
-
     constructor(
         uint256 entranceFee,
         uint256 interval,
@@ -94,7 +93,7 @@ contract Raffle is VRFConsumerBaseV2 {
     function enterRaffle() external payable {
         // Use external for gas efficient.
         if (msg.value < i_entranceFee) {
-            revert Raflle__NotEnoughEthSent();
+            revert Raffle__NotEnoughEthSent();
         }
         if (s_raffleState != RaffleState.OPEN) {
             revert Raffle__RaffleNotOpen();
@@ -180,5 +179,13 @@ contract Raffle is VRFConsumerBaseV2 {
      */
     function getEntranceFee() external view returns (uint256) {
         return i_entranceFee;
+    }
+
+    function getRaffleState () external view returns (RaffleState) {
+        return s_raffleState;
+    } 
+
+    function getPlayer(uint256 indexOfPlayer) external view returns (address) {
+        return s_players[indexOfPlayer];
     }
 }
