@@ -114,7 +114,7 @@ contract Raffle is VRFConsumerBaseV2 {
      * 3. The contract has ETH (aka, players)
      * 4. (Implicit) The subscription is funded with LINK
      */
-    function checkUpKeep(
+    function checkUpkeep(
         bytes memory /* checkData */
     ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
         // check to see if enough time has passed
@@ -130,7 +130,7 @@ contract Raffle is VRFConsumerBaseV2 {
     // 2. Use the random number to pick a player
     // 3. Be automatically called
     function performUpkeep(bytes calldata /* performData */) external {
-        (bool upkeepNeeded, ) = checkUpKeep("");
+        (bool upkeepNeeded, ) = checkUpkeep("");
         if (!upkeepNeeded) {
             revert Raffe__UpkeepNotNeeded(
                 address(this).balance,

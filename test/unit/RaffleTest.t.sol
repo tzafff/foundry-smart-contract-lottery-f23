@@ -37,7 +37,8 @@ contract RaffleTest is Test {
             gasLane,
             subscriptionId,
             callbackGasLimit,
-            link
+            link,
+
         ) = helperConfig.activeNetworkConfig();
         vm.deal(PLAYER, STARTING_USER_BALANCE);
     }
@@ -93,7 +94,7 @@ contract RaffleTest is Test {
         vm.roll(block.number + 1);
 
         // Act
-        (bool upkeepNeeded, ) = raffle.checkUpKeep("");
+        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
 
         // Assert
         assert(!upkeepNeeded);
@@ -107,7 +108,7 @@ contract RaffleTest is Test {
         vm.roll(block.number + 1);
         raffle.performUpkeep("");
         // Act
-        (bool upkeepNeeded, ) = raffle.checkUpKeep("");
+        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
         // Assert
         assert(upkeepNeeded == false);
     }
@@ -119,7 +120,7 @@ contract RaffleTest is Test {
         raffle.enterRaffle{value: entranceFee}();
 
         // Act
-        (bool upkeepNeeded, ) = raffle.checkUpKeep("");
+        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
 
         // Assert
         assert(!upkeepNeeded);
@@ -133,7 +134,7 @@ contract RaffleTest is Test {
         vm.roll(block.number + 1);
 
         // Act
-        (bool upkeepNeeded, ) = raffle.checkUpKeep("");
+        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
         console.log("upkeepNeeded ", upkeepNeeded);
         // Assert
         assert(upkeepNeeded);
@@ -153,19 +154,18 @@ contract RaffleTest is Test {
         raffle.performUpkeep("");
     }
 
-    function testPerfomUpkeepRevertsIfCheckUpkeepIsFalse() public {
+    function testPerformUpkeepRevertsIfCheckUpkeepIsFalse() public skipFork{
         // Arrange
         uint256 currentBalance = 0;
         uint256 numPlayers = 0;
-        uint256 raffleState = 0;
-
+        Raffle.RaffleState rState = raffle.getRaffleState();
         // Act / Assert
         vm.expectRevert(
             abi.encodeWithSelector(
                 Raffle.Raffe__UpkeepNotNeeded.selector,
                 currentBalance,
                 numPlayers,
-                raffleState
+                rState
             )
         );
         raffle.performUpkeep("");
@@ -200,9 +200,16 @@ contract RaffleTest is Test {
     // fullfillRandomWords     //
     /////////////////////////////
 
+    modifier skipFork() {
+        if (block.chainid != 31337) {
+            return;
+        }
+        _;
+    }
+
     function testFullfillRandomWordsCanOnlyBeCalledAfterPerdomUpkeep(
         uint256 randomRequestId
-    ) public raffleEnteredAndTimePassed {
+    ) public raffleEnteredAndTimePassed skipFork {
         // Arrange
         vm.expectRevert("nonexistent request");
         VRFCoordinatorV2Mock(vrfCoordinator).fulfillRandomWords(
@@ -214,6 +221,7 @@ contract RaffleTest is Test {
     function testFullfillRandomWordsPicksAWinnerResetsAndSendsMoney()
         public
         raffleEnteredAndTimePassed
+        skipFork
     {
         // Arrange
         uint256 additionalEntrants = 5;
@@ -249,10 +257,11 @@ contract RaffleTest is Test {
         assert(raffle.getRecentWinner() != address(0));
         assert(raffle.getLengthOfPlayers() == 0);
         assert(previousTimeStamp < raffle.getLastTimestamp());
-        console.log("Balance",raffle.getRecentWinner().balance);
-        console.log("Prize",prize + STARTING_USER_BALANCE);
+        console.log("Balance", raffle.getRecentWinner().balance);
+        console.log("Prize", prize + STARTING_USER_BALANCE);
         assert(
-            raffle.getRecentWinner().balance == STARTING_USER_BALANCE + prize - entranceFee
+            raffle.getRecentWinner().balance ==
+                STARTING_USER_BALANCE + prize - entranceFee
         );
     }
 }
